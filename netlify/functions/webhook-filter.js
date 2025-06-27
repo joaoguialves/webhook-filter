@@ -19,7 +19,7 @@ exports.handler = async (event, context) => {
     // Parse dos dados recebidos do Suri
     const data = JSON.parse(event.body);
     
-    // Extrair informações do canal (agora sabemos onde está!)
+    // Extrair informações do canal 
     const canalId = data.payload?.channel?.Id;
     const canalNome = data.payload?.channel?.Name || 'Não informado';
     const usuarioNome = data.payload?.user?.Name || 'Não informado';
