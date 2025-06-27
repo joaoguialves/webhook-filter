@@ -5,11 +5,9 @@ exports.handler = async (event, context) => {
   // ID do canal que você quer receber
   const CANAL_PERMITIDO = 'wp351072341433407';
   
-  // Log para debug
-  console.log('Webhook recebido:', new Date().toISOString());
+  console.log('🔥 Webhook recebido:', new Date().toISOString());
   
   try {
-    // Verificar se é uma requisição POST
     if (event.httpMethod !== 'POST') {
       return {
         statusCode: 405,
@@ -20,54 +18,41 @@ exports.handler = async (event, context) => {
     // Parse dos dados recebidos do Suri
     const data = JSON.parse(event.body);
     
-    // Log dos dados recebidos (para debug)
-    console.log('Dados recebidos:', {
-      canal: data.channel?.Name || 'Não informado',
-      canalId: data.channel?.Id || 'Não informado',
-      tipo: data.type || 'Não informado'
+    // 🔍 DEBUG - Vamos ver TODA a estrutura dos dados
+    console.log('📋 ESTRUTURA COMPLETA DOS DADOS:');
+    console.log(JSON.stringify(data, null, 2));
+    
+    // 🔍 DEBUG - Verificar especificamente o campo channel
+    console.log('📋 DADOS DO CANAL:');
+    console.log('data.channel:', data.channel);
+    console.log('data.channel?.Id:', data.channel?.Id);
+    console.log('data.channel?.id:', data.channel?.id);
+    console.log('data.channel?.ID:', data.channel?.ID);
+    
+    // 🔍 DEBUG - Verificar outros possíveis campos
+    console.log('📋 OUTROS CAMPOS POSSÍVEIS:');
+    console.log('data.channelId:', data.channelId);
+    console.log('data.channel_id:', data.channel_id);
+    console.log('data.chatId:', data.chatId);
+    console.log('data.chat?.id:', data.chat?.id);
+    
+    // 🔍 DEBUG - Listar todas as chaves do objeto principal
+    console.log('📋 TODAS AS CHAVES DO OBJETO:');
+    console.log('Chaves:', Object.keys(data));
+    
+    // ⚠️ TEMPORÁRIO - Enviar TODAS as mensagens para o Make para teste
+    console.log('🚀 ENVIANDO PARA O MAKE (MODO DEBUG - TODOS OS CANAIS)');
+    
+    const response = await fetch(MAKE_WEBHOOK_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data)
     });
     
-    // Verificar se é do canal específico
-    if (data.channel && data.channel.Id === CANAL_PERMITIDO) {
-      
-      console.log('✅ Canal permitido! Enviando para o Make...');
-      
-      // Reenviar para o Make
-      const response = await fetch(MAKE_WEBHOOK_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data)
-      });
-      
-      if (response.ok) {
-        console.log('✅ Enviado com sucesso para o Make');
-        return {
-          statusCode: 200,
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ 
-            success: true,
-            message: 'Webhook processado e enviado para Make',
-            canal: data.channel.Name
-          })
-        };
-      } else {
-        console.error('❌ Erro ao enviar para o Make:', response.status);
-        return {
-          statusCode: 500,
-          body: JSON.stringify({ error: 'Erro ao enviar para o Make' })
-        };
-      }
-      
-    } else {
-      // Mensagem de outro canal - ignorar
-      console.log('❌ Canal não permitido. Ignorando mensagem.');
-      console.log('Canal recebido:', data.channel?.Id);
-      console.log('Canal permitido:', CANAL_PERMITIDO);
-      
+    if (response.ok) {
+      console.log('✅ Enviado com sucesso para o Make');
       return {
         statusCode: 200,
         headers: {
@@ -75,10 +60,15 @@ exports.handler = async (event, context) => {
         },
         body: JSON.stringify({ 
           success: true,
-          message: 'Mensagem ignorada - canal não é o permitido',
-          canalRecebido: data.channel?.Name || 'Desconhecido',
-          canalPermitido: CANAL_PERMITIDO
+          message: 'MODO DEBUG - Enviado para Make (todos os canais)',
+          debug: 'Verifique os logs para ver a estrutura dos dados'
         })
+      };
+    } else {
+      console.error('❌ Erro ao enviar para o Make:', response.status);
+      return {
+        statusCode: 500,
+        body: JSON.stringify({ error: 'Erro ao enviar para o Make' })
       };
     }
     
